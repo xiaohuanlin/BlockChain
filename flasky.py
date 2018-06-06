@@ -9,7 +9,7 @@ node_identifier = str(uuid4()).replace('-', '')
 
 blockchain = BlockChain()
 
-@app.route('/mine', method=['GET'])
+@app.route('/mine', methods=['GET'])
 def mine():
     # Run the proof of work algo to get next proof
     last_block = blockchain.last_block
@@ -28,7 +28,7 @@ def mine():
     response = {
         'message': 'New Block Forged',
         'index': block['index'],
-        'transaction': block['transactions'],
+        'transactions': block['transactions'],
         'proof': block['proof'],
         'previous_hash': block['previous_hash']
     }
@@ -36,12 +36,7 @@ def mine():
     return jsonify(response), 200
 
 
-@app.route('/transactions', method=['POST'])
-def transactions():
-    return "We'll add a new transaction"
-
-
-@app.route('/chain', method=['GET'])
+@app.route('/chain', methods=['GET'])
 def full_chain():
     response = {
         'chain': blockchain.chain,
@@ -50,9 +45,10 @@ def full_chain():
     return jsonify(response), 200
 
 
-@app.route('/transactions/new', method=['POST'])
+@app.route('/transactions/new', methods=['POST'])
 def new_transactions():
-    values = request.get_json()
+
+    values = request.form
 
     # Check the required fields data
     required = ['sender', 'recipient', 'amount']
@@ -67,11 +63,13 @@ def new_transactions():
     }
     return jsonify(response), 201
 
-@app.route('/nodes/register', method=['POST'])
-def register_nodes():
-    values = request.get_json()
 
-    nodes = values.get('nodes')
+@app.route('/nodes/register', methods=['POST'])
+def register_nodes():
+    values = request.form
+
+    nodes = values.get('nodes').split(',')
+
     if not nodes:
         return 'Error: Please supply a valid list of nodes', 400
 
@@ -84,7 +82,8 @@ def register_nodes():
     }
     return jsonify(response), 201
 
-@app.route('/nodes/resolve', method=['GET'])
+
+@app.route('/nodes/resolve', methods=['GET'])
 def consensus():
     replaced = blockchain.resolve_conflicts()
 
@@ -101,5 +100,5 @@ def consensus():
     return jsonify(response), 200
 
 
-if __name__ == 'main':
-    app.run()
+if __name__ == '__main__':
+    app.run(debug=True)

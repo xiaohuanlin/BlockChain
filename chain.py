@@ -20,10 +20,15 @@ class BlockChain:
         block = {
             'index': len(self.chain) + 1,
             'timestamp': time(),
-            'transaction': self.current_transactions,
+            'transactions': self.current_transactions,
             'proof': proof,
             'previous_hash': previous_hash or self.hash(self.chain[-1]),
         }
+
+        # Append the block to chain
+        self.current_transactions = []
+        self.chain.append(block)
+
         return block
     
     def new_transaction(self, sender, recipient, amount):
@@ -53,9 +58,14 @@ class BlockChain:
 
     def proof_of_work(self, last_proof):
         # Give the previous POW
+        start_time = time()
         proof = 0
+        count = 0
         while self.valid_proof(last_proof, proof) is False:
             proof += 1
+            count += 1
+        cost_time = time() - start_time
+        print('End POW. Cost {} s, Count {} times'.format(cost_time, count))
         return proof
     
     @staticmethod
@@ -73,7 +83,7 @@ class BlockChain:
         while current_index < len(chain):
             block = chain[current_index]
             print('{}'.format(last_block))
-            print({}.format(block))
+            print('{}'.format(block))
             print('\n'+ '-'*10 + '\n')
             # Check the hash if the block is correct
             if block['previous_hash'] != self.hash(last_block):
@@ -97,7 +107,7 @@ class BlockChain:
         for node in neighbours:
             response = requests.get('http://{}/chain'.format(node))
 
-            if requests.status_codes == 200:
+            if response.status_code == 200:
                 length = response.json()['length']
                 chain = response.json()['chain']
 
